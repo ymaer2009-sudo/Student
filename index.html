@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة أداء الدرجات - متعدد المعلمين</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --border-color: #e2e8f0;
+            --table-header-bg: #f1f5f9;
+            --table-header-color: #475569;
+            --table-hover: #f8fafc;
+            --input-bg: #ffffff;
+            --stat-title: #64748b;
+            --modal-overlay: rgba(0, 0, 0, 0.7);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #3b82f6;
+            --secondary-color: #60a5fa;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --danger-color: #f87171;
+            --success-color: #34d399;
+            --border-color: #334155;
+            --table-header-bg: #334155;
+            --table-header-color: #cbd5e1;
+            --table-hover: #334155;
+            --input-bg: #0f172a;
+            --stat-title: #94a3b8;
+            --modal-overlay: rgba(0, 0, 0, 0.85);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        /* Teacher Bar Section */
+        .teacher-bar {
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-toggle {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 2.2fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 950px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .table-header-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-full { width: 100%; margin-top: 5px; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-add-points { background-color: var(--success-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-secondary { background-color: #64748b; color: white; }
+        .btn-info { background-color: #0284c7; color: white; }
+
+        .table-responsive { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: var(--card-bg);
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.88rem;
+        }
+
+        th { background-color: var(--table-header-bg); color: var(--table-header-color); }
+        tr:hover { background-color: var(--table-hover); }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .badge-excellent { background-color: #d1fae5; color: #065f46; }
+        .badge-good { background-color: #dbeafe; color: #1e40af; }
+        .badge-pass { background-color: #fef3c7; color: #92400e; }
+        .badge-fail { background-color: #fee2e2; color: #991b1b; }
+
+        .history-list {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 140px;
+            margin: 4px auto 0 auto;
+        }
+
+        .history-chip {
+            background-color: var(--table-header-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-size: 0.72rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card h3 { font-size: 0.85rem; color: var(--stat-title); }
+        .stat-card p { font-size: 1.4rem; font-weight: bold; color: var(--primary-color); margin-top: 5px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--modal-overlay);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal h3 { margin-bottom: 15px; text-align: center; }
+
+        .details-section { margin-bottom: 15px; }
+        .details-section h4 {
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            margin-bottom: 6px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .details-list {
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+        }
+
+        .details-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.88rem;
+            border-bottom: 1px dotted var(--border-color);
+        }
+
+        .details-item:last-child { border-bottom: none; }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-color);
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .auth-tab-content { display: none; }
+        .auth-tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>نظام إدارة وتتبع أداء الطلاب</h1>
+            <p>Product-style Grade Manager</p>
+        </div>
+        <button class="theme-toggle" id="theme-toggle-btn">
+            <span id="theme-icon">🌙</span> <span id="theme-text">الوضع الليلي</span>
+        </button>
+    </header>
+
+    <!-- Teacher Bar Section -->
+    <div class="teacher-bar">
+        <div class="teacher-info">
+            <span>👨‍🏫 المعلم الحالي: <strong id="current-teacher-display" style="color: var(--primary-color);">غير مسجل</strong></span>
+        </div>
+        <button class="btn btn-primary" id="switch-account-btn">تسجيل الدخول / تبديل الحساب</button>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>إجمالي الطلاب</h3>
+            <p id="stat-total">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>متوسط المجاميع</h3>
+            <p id="stat-avg">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>أعلى مجموع كلي</h3>
+            <p id="stat-max">0</p>
+        </div>
+    </div>
+
+    <div class="grid-layout">
+        <!-- Forms Section -->
+        <div>
+            <!-- Form 1: Add New Student -->
+            <div class="card">
+                <h2>إضافة طالب جديد</h2>
+                <form id="add-student-form">
+                    <div class="form-group">
+                        <label>اسم الطالب</label>
+                        <input type="text" id="student-name" required placeholder="مثال: أحمد محمود">
+                    </div>
+                    <div class="form-group">
+                        <label>التقييم الأول (من 15)</label>
+                        <input type="number" id="weekly-grade" min="0" step="0.5" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>درجة الواجب الأولى (من 10)</label>
+                        <input type="number" id="homework-grade" min="0" step="0.5" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>درجة السلوك الأولى (من 10)</label>
+                        <input type="number" id="behavior-grade" min="0" step="0.5" value="0">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">حفظ الطالب</button>
+                </form>
+            </div>
+
+            <!-- Form 2: Quick Add Points -->
+            <div class="card">
+                <h2>إضافة درجة جديدة/إضافية</h2>
+                <form id="add-points-form">
+                    <div class="form-group">
+                        <label>اختر الطالب</label>
+                        <select id="select-student" required>
+                            <option value="">-- اختر طالب --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع الدرجة المضافة</label>
+                        <select id="select-category" required>
+                            <option value="weekly">تقييم أسبوعي جديد (من 15)</option>
+                            <option value="homework">درجة واجب جديد (من 10)</option>
+                            <option value="behavior">درجة سلوك جديدة (من 10)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الدرجة المضافة</label>
+                        <input type="number" id="extra-points" min="0.5" step="0.5" required placeholder="مثال: 10">
+                    </div>
+                    <button type="submit" class="btn btn-add-points btn-full">تسجيل وإضافة الدرجة</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table Display Section -->
+        <div class="card">
+            <div class="table-header-tools">
+                <h2 id="table-title">جدول درجات الطلاب</h2>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="🔍 بحث باسم الطالب...">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الطالب</th>
+                            <th>التقييمات (15)</th>
+                            <th>الواجبات (10)</th>
+                            <th>السلوك (10)</th>
+                            <th>المجموع الكلي</th>
+                            <th>التقدير</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table-body">
+                        <!-- Data will be dynamically rendered here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mandatory Auth Modal (Login / Register) -->
+<div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+        <div class="tabs-header">
+            <button class="tab-btn active" id="tab-login-btn">تسجيل الدخول</button>
+            <button class="tab-btn" id="tab-register-btn">إنشاء حساب جديد</button>
+        </div>
+
+        <!-- Login Form -->
+        <div class="auth-tab-content active" id="login-tab">
+            <form id="login-form">
+                <div class="form-group">
+                    <label>اختر المعلم</label>
+                    <select id="login-teacher-select" required>
+                        <!-- Dynamic Options -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="login-password" required placeholder="أدخل كلمة المرور">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">دخول</button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div class="auth-tab-content" id="register-tab">
+            <form id="register-form">
+                <div class="form-group">
+                    <label>اسم المعلم</label>
+                    <input type="text" id="reg-teacher-name" required placeholder="أدخل اسم المعلم">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور (يجب أن تكون فريدة)</label>
+                    <input type="password" id="reg-teacher-password" required placeholder="أدخل كلمة المرور الخاصة بك">
+                </div>
+                <button type="submit" class="btn btn-add-points btn-full">إنشاء الحساب ودخول</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal-overlay" id="details-modal">
+    <div class="modal">
+        <h3 id="details-modal-title" style="color: var(--primary-color);">تفاصيل سجل درجات الطالب</h3>
+        <div id="details-modal-content"></div>
+        <div style="text-align: center; margin-top:15px;">
+            <button class="btn btn-secondary" id="close-details-btn">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="delete-modal">
+    <div class="modal">
+        <h3 style="color: var(--danger-color);">تأكيد الحذف</h3>
+        <p id="delete-modal-text" style="text-align: center; margin-bottom: 15px;">هل أنت تأكد من حذف بيانات الطالب؟</p>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button class="btn btn-danger" id="confirm-delete-btn">حذف</button>
+            <button class="btn btn-secondary" id="cancel-delete-btn">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Teachers state stored in LocalStorage
+    let teachers = JSON.parse(localStorage.getItem('teachers_list_v3')) || [];
+    let currentTeacher = null; // نضع المعلم الحالي فارغ دائما عند بداية تشغيل الصفحة
+    let students = [];
+
+    let deleteTargetIndex = null;
+
+    function saveTeachersState() {
+        localStorage.setItem('teachers_list_v3', JSON.stringify(teachers));
+    }
+
+    function loadCurrentTeacherData() {
+        if (!currentTeacher) return;
+        const storageKey = `students_data_${currentTeacher}`;
+        students = JSON.parse(localStorage.getItem(storageKey)) || [];
+        render();
+    }
+
+    function saveData() {
+        if (!currentTeacher) return;
+        const storageKey = `students_data_${currentTeacher}`;
+        localStorage.setItem(storageKey, JSON.stringify(students));
+        render();
+    }
+
+    // Auth & UI Elements
+    const authModal = document.getElementById('auth-modal');
+    const tabLoginBtn = document.getElementById('tab-login-btn');
+    const tabRegisterBtn = document.getElementById('tab-register-btn');
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+
+    const loginForm = document.getElementById('login-form');
+    const loginTeacherSelect = document.getElementById('login-teacher-select');
+    const loginPasswordInput = document.getElementById('login-password');
+
+    const registerForm = document.getElementById('register-form');
+    const regTeacherNameInput = document.getElementById('reg-teacher-name');
+    const regTeacherPasswordInput = document.getElementById('reg-teacher-password');
+
+    const currentTeacherDisplay = document.getElementById('current-teacher-display');
+    const switchAccountBtn = document.getElementById('switch-account-btn');
+    const tableTitle = document.getElementById('table-title');
+
+    // Switch Tabs in Auth Modal
+    tabLoginBtn.addEventListener('click', () => {
+        tabLoginBtn.classList.add('active');
+        tabRegisterBtn.classList.remove('active');
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+    });
+
+    tabRegisterBtn.addEventListener('click', () => {
+        tabRegisterBtn.classList.add('active');
+        tabLoginBtn.classList.remove('active');
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+    });
+
+    function populateLoginDropdown() {
+        loginTeacherSelect.innerHTML = '';
+        if (teachers.length === 0) {
+            loginTeacherSelect.innerHTML = '<option value="">لا يوجد معلمون مسجلون - أنشئ حسابًا جديدًا</option>';
+            return;
+        }
+        teachers.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.name;
+            opt.textContent = t.name;
+            loginTeacherSelect.appendChild(opt);
+        });
+    }
+
+    function showAuthModal() {
+        populateLoginDropdown();
+        if (teachers.length === 0) {
+            tabRegisterBtn.click();
+        } else {
+            tabLoginBtn.click();
+        }
+        authModal.classList.add('active');
+    }
+
+    switchAccountBtn.addEventListener('click', showAuthModal);
+
+    // Login Form Submit
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const selectedName = loginTeacherSelect.value;
+        const pass = loginPasswordInput.value.trim();
+
+        const teacherObj = teachers.find(t => t.name === selectedName);
+        if (teacherObj && teacherObj.password === pass) {
+            currentTeacher = selectedName;
+            updateTeacherUI();
+            loadCurrentTeacherData();
+            authModal.classList.remove('active');
+            loginForm.reset();
+        } else {
+            alert('كلمة المرور غير صحيحة!');
+        }
+    });
+
+    // Register Form Submit
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = regTeacherNameInput.value.trim();
+        const pass = regTeacherPasswordInput.value.trim();
+
+        // 1. Check duplicate name
+        if (teachers.some(t => t.name === name)) {
+            alert('اسم المعلم مسجل بالفعل! اختر اسمًا آخر أو قم بتسجيل الدخول.');
+            return;
+        }
+
+        // 2. Check duplicate password
+        if (teachers.some(t => t.password === pass)) {
+            alert('كلمة المرور هذه مستخدمة بالفعل من قبل معلم آخر. برجاء إدخال كلمة مرور فريدة خاصة بك!');
+            return;
+        }
+
+        teachers.push({ name, password: pass });
+        currentTeacher = name;
+        saveTeachersState();
+        updateTeacherUI();
+        loadCurrentTeacherData();
+
+        authModal.classList.remove('active');
+        registerForm.reset();
+
+        alert(`تم إنشاء الحساب بنجاح!\nاسم المعلم: ${name}\nكلمة المرور: ${pass}`);
+    });
+
+    function updateTeacherUI() {
+        if (currentTeacher) {
+            currentTeacherDisplay.textContent = currentTeacher;
+            tableTitle.textContent = `جدول درجات الطلاب الخاصة بـ (${currentTeacher})`;
+        } else {
+            currentTeacherDisplay.textContent = 'غير مسجل';
+            tableTitle.textContent = 'جدول درجات الطلاب';
+        }
+    }
+
+    // Helper functions
+    function normalizeStudentData(student) {
+        if (!Array.isArray(student.weeklyHistory)) student.weeklyHistory = typeof student.weekly === 'number' && student.weekly > 0 ? [student.weekly] : [];
+        if (!Array.isArray(student.homeworkHistory)) student.homeworkHistory = typeof student.homework === 'number' && student.homework > 0 ? [student.homework] : [];
+        if (!Array.isArray(student.behaviorHistory)) student.behaviorHistory = typeof student.behavior === 'number' && student.behavior > 0 ? [student.behavior] : [];
+    }
+
+    function sumArray(arr) { return arr.reduce((sum, val) => sum + val, 0); }
+
+    // Theme Management
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        themeIcon.textContent = theme === 'dark' ? '☀️️' : '🌙';
+        themeText.textContent = theme === 'dark' ? 'الوضع النهارى' : 'الوضع الليلي';
+    }
+
+    applyTheme(localStorage.getItem('theme') || 'light');
+    themeToggleBtn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // DOM Elements
+    const addStudentForm = document.getElementById('add-student-form');
+    const addPointsForm = document.getElementById('add-points-form');
+    const studentsTableBody = document.getElementById('students-table-body');
+    const selectStudent = document.getElementById('select-student');
+    const searchInput = document.getElementById('search-input');
+
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteModalText = document.getElementById('delete-modal-text');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+    const detailsModal = document.getElementById('details-modal');
+    const detailsModalTitle = document.getElementById('details-modal-title');
+    const detailsModalContent = document.getElementById('details-modal-content');
+    const closeDetailsBtn = document.getElementById('close-details-btn');
+
+    const statTotal = document.getElementById('stat-total');
+    const statAvg = document.getElementById('stat-avg');
+    const statMax = document.getElementById('stat-max');
+
+    function getBadge(total) {
+        if (total >= 30) return `<span class="badge badge-excellent">ممتاز</span>`;
+        if (total >= 24) return `<span class="badge badge-good">جيد جداً</span>`;
+        if (total >= 17.5) return `<span class="badge badge-pass">مقبول</span>`;
+        return `<span class="badge badge-fail">ضعيف</span>`;
+    }
+
+    function generateHistoryChips(historyArray, prefix) {
+        if (!historyArray || historyArray.length === 0) return '<div class="history-list"><span class="history-chip" style="color:#94a3b8;">لا يوجد</span></div>';
+        let html = '<div class="history-list">';
+        historyArray.forEach((val, idx) => { html += `<span class="history-chip">${prefix}${idx + 1}: <strong>${val}</strong></span>`; });
+        html += '</div>';
+        return html;
+    }
+
+    function render() {
+        const query = searchInput.value.trim().toLowerCase();
+        studentsTableBody.innerHTML = '';
+        selectStudent.innerHTML = '<option value="">-- اختر طالب --</option>';
+
+        let totalSumAll = 0, maxScore = 0, visibleCount = 0;
+
+        students.forEach((student, index) => {
+            normalizeStudentData(student);
+
+            const weeklyTotal = sumArray(student.weeklyHistory);
+            const homeworkTotal = sumArray(student.homeworkHistory);
+            const behaviorTotal = sumArray(student.behaviorHistory);
+            const total = weeklyTotal + homeworkTotal + behaviorTotal;
+
+            totalSumAll += total;
+            if (total > maxScore) maxScore = total;
+
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = student.name;
+            selectStudent.appendChild(option);
+
+            if (query === '' || student.name.toLowerCase().includes(query)) {
+                visibleCount++;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${student.name}</strong></td>
+                    <td><strong>${weeklyTotal}</strong>${generateHistoryChips(student.weeklyHistory, 'ت')}</td>
+                    <td><strong>${homeworkTotal}</strong>${generateHistoryChips(student.homeworkHistory, 'و')}</td>
+                    <td><strong>${behaviorTotal}</strong>${generateHistoryChips(student.behaviorHistory, 'س')}</td>
+                    <td><strong>${total}</strong></td>
+                    <td>${getBadge(total)}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="openDetailsModal(${index})">تفاصيل</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${index})">حذف</button>
+                    </td>
+                `;
+                studentsTableBody.appendChild(tr);
+            }
+        });
+
+        if (visibleCount === 0) {
+            studentsTableBody.innerHTML = `<tr><td colspan="7" style="color: #94a3b8;">${students.length === 0 ? 'لا توجد بيانات مسجلة لهذا المعلم' : 'لا توجد نتائج تطابق البحث'}</td></tr>`;
+        }
+
+        statTotal.textContent = students.length;
+        statAvg.textContent = students.length ? (totalSumAll / students.length).toFixed(1) : 0;
+        statMax.textContent = students.length ? maxScore : 0;
+    }
+
+    searchInput.addEventListener('input', render);
+
+    addStudentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!currentTeacher) {
+            alert('برجاء تسجيل الدخول أولاً!');
+            showAuthModal();
+            return;
+        }
+
+        const weeklyVal = parseFloat(document.getElementById('weekly-grade').value) || 0;
+        const homeworkVal = parseFloat(document.getElementById('homework-grade').value) || 0;
+        const behaviorVal = parseFloat(document.getElementById('behavior-grade').value) || 0;
+
+        students.push({
+            name: document.getElementById('student-name').value.trim(),
+            weeklyHistory: weeklyVal > 0 ? [weeklyVal] : [],
+            homeworkHistory: homeworkVal > 0 ? [homeworkVal] : [],
+            behaviorHistory: behaviorVal > 0 ? [behaviorVal] : []
+        });
+
+        saveData();
+        addStudentForm.reset();
+    });
+
+    addPointsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!currentTeacher) {
+            alert('برجاء تسجيل الدخول أولاً!');
+            showAuthModal();
+            return;
+        }
+
+        const studentIndex = selectStudent.value;
+        const category = document.getElementById('select-category').value;
+        const extraPoints = parseFloat(document.getElementById('extra-points').value) || 0;
+
+        if (studentIndex === "") return;
+        normalizeStudentData(students[studentIndex]);
+
+        if (category === 'weekly') students[studentIndex].weeklyHistory.push(extraPoints);
+        else if (category === 'homework') students[studentIndex].homeworkHistory.push(extraPoints);
+        else if (category === 'behavior') students[studentIndex].behaviorHistory.push(extraPoints);
+
+        saveData();
+        addPointsForm.reset();
+    });
+
+    function buildDetailSectionHtml(title, historyArray, prefixName) {
+        let html = `<div class="details-section">
+            <h4>${title} (المجموع: ${sumArray(historyArray)})</h4>
+            <div class="details-list">`;
+        if (!historyArray || historyArray.length === 0) {
+            html += '<p style="text-align:center; color:#94a3b8; font-size:0.85rem;">لا توجد درجات مسجلة</p>';
+        } else {
+            historyArray.forEach((score, idx) => {
+                html += `<div class="details-item"><span>${prefixName} ${idx + 1}:</span><strong>${score} درجة</strong></div>`;
+            });
+        }
+        html += `</div></div>`;
+        return html;
+    }
+
+    function openDetailsModal(index) {
+        const student = students[index];
+        normalizeStudentData(student);
+
+        detailsModalTitle.textContent = `سجل درجات الطالب: ${student.name}`;
+        let contentHtml = '';
+        contentHtml += buildDetailSectionHtml('التقييمات الأسبوعية', student.weeklyHistory, 'تقييم الأسبوع');
+        contentHtml += buildDetailSectionHtml('درجات الواجبات', student.homeworkHistory, 'الواجب');
+        contentHtml += buildDetailSectionHtml('درجات السلوك', student.behaviorHistory, 'السلوك');
+
+        detailsModalContent.innerHTML = contentHtml;
+        detailsModal.classList.add('active');
+    }
+
+    closeDetailsBtn.addEventListener('click', () => detailsModal.classList.remove('active'));
+
+    function openDeleteModal(index) {
+        deleteTargetIndex = index;
+        deleteModalText.textContent = `هل أنت تأكد من حذف بيانات الطالب "${students[index].name}"؟`;
+        deleteModal.classList.add('active');
+    }
+
+    function closeDeleteModal() {
+        deleteTargetIndex = null;
+        deleteModal.classList.remove('active');
+    }
+
+    confirmDeleteBtn.addEventListener('click', () => {
+        if (deleteTargetIndex !== null) {
+            students.splice(deleteTargetIndex, 1);
+            saveData();
+            closeDeleteModal();
+        }
+    });
+
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+    // Force authentication on every page load
+    updateTeacherUI();
+    showAuthModal();
+</script>
+
+</body>
+</html>
